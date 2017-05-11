@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <EditText
+        android:id="@+id/hours"
+        android:layout_width="50dp"
+        android:layout_height="match_parent"
+        android:inputType="number"
+        android:maxLines="1"
+        android:maxLength="2"
+        android:textSize="28sp"
+        android:gravity="center_horizontal" />
+    <TextView
+        android:id="@+id/hoursText"
+        android:labelFor="@id/hours"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_toEndOf="@id/hours"
+        android:text="h"
+        android:textSize="35sp"/>
+    <EditText
+        android:id="@+id/minutes"
+        android:layout_width="50dp"
+        android:layout_height="match_parent"
+        android:layout_toEndOf="@id/hoursText"
+        android:inputType="number"
+        android:maxLines="1"
+        android:maxLength="2"
+        android:textSize="28sp"
+        android:gravity="center_horizontal" />
+    <TextView
+        android:id="@+id/minutesText"
+        android:labelFor="@id/minutes"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_toEndOf="@id/minutes"
+        android:text="m"
+        android:textSize="35sp" />
+</RelativeLayout>

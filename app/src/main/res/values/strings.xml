@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Remainder</string>
+    <string name="newAction">New Action</string>
+    <string name="addNew">Add Action</string>
+    <string name="add">Add</string>
+    <string name="until">Until</string>
+    <string name="repeat">Repeat every</string>
+    <string name="calendarTitle">Set your date</string>
+    <string-array name="quantity">
+        <item>Time</item>
+        <item>Pages</item>
+        <item>Lines</item>
+        <item>Items</item>
+    </string-array>
+    <string-array name="one">
+        <item>day</item>
+        <item>month</item>
+        <item>year</item>
+    </string-array>
+    <string-array name="plural">
+        <item>days</item>
+        <item>months</item>
+        <item>years</item>
+    </string-array>
+</resources>

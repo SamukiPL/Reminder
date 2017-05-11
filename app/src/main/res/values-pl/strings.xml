@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Remainder</string>
+    <string name="add">Dodaj</string>
+    <string name="addNew">Dodaj Akcję</string>
+    <string name="newAction">Nowa Akcja</string>
+</resources>
