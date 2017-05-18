@@ -14,11 +14,15 @@
     </string-array>
     <string-array name="one">
         <item>day</item>
+        <item>weekend</item>
+        <item>week</item>
         <item>month</item>
         <item>year</item>
     </string-array>
     <string-array name="plural">
         <item>days</item>
+        <item>weekends</item>
+        <item>weeks</item>
         <item>months</item>
         <item>years</item>
     </string-array>

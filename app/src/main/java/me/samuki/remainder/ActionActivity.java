@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.Editable;
@@ -35,7 +34,12 @@ public class ActionActivity extends Activity {
 
     private Spinner typeSpinner;
     private int typeNumber;
+
+    private RadioGroup dateOrPeriod;
     private TextView dateText;
+    private EditText periodEdit;
+    private Spinner periodSpinner;
+    private int periodNumber;
     //Data format
     private SimpleDateFormat dateFormat;
     @Override
@@ -47,8 +51,38 @@ public class ActionActivity extends Activity {
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         setTimeLayout();
         setSpinner();
-        setDateText();
-
+        setDateAndPeriods();
+    }
+    private boolean editIsEmpty(EditText edit) {
+        if(edit.getText().toString().equals("")) {
+            edit.setText("0");
+            return true;
+        }
+        return false;
+    }
+    private void zeroFirst(EditText edit, char first) {
+        if(first == '0' && edit.isFocused())
+            edit.setText("");
+    }
+    private void doneButton(EditText edit, int actionId) {
+        if(actionId == EditorInfo.IME_ACTION_DONE) {
+            edit.clearFocus();
+            editIsEmpty(edit);
+            InputMethodManager imm =  (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(edit.getWindowToken(), 0);
+        }
+    }
+    private void maxLengthCheck(EditText edit, EditText nextEdit, int length) {
+        if(edit.getText().length() == length) {
+            nextEdit.requestFocus();
+        }
+    }
+    private void maxLengthCheck(EditText edit, int length) {
+        if(edit.getText().length() == length) {
+            InputMethodManager imm =  (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(edit.getWindowToken(), 0);
+            edit.clearFocus();
+        }
     }
     private void setSpinner() {
         typeSpinner = (Spinner) findViewById(R.id.actionSpinner);
@@ -104,7 +138,7 @@ public class ActionActivity extends Activity {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if(actionId == EditorInfo.IME_ACTION_DONE) {
-                    timeEmpty(hours);
+                    editIsEmpty(hours);
                     minutes.requestFocus();
                 }
                 return false;
@@ -118,7 +152,7 @@ public class ActionActivity extends Activity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                timeEmpty(hours);
+                editIsEmpty(hours);
                 if(count == 1)
                     zeroFirst(minutes, s.charAt(0));
                 maxLengthCheck(minutes, 2);
@@ -133,7 +167,7 @@ public class ActionActivity extends Activity {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 doneButton(minutes, actionId);
-                timeEmpty(hours);
+                editIsEmpty(hours);
                 return false;
             }
         });
@@ -172,40 +206,69 @@ public class ActionActivity extends Activity {
             }
         });
     }
-    private void timeEmpty(EditText edit) {
-        if(edit.getText().toString().equals("")) {
-            edit.setText("0");
-            System.out.println("OMG");
-        }
-    }
-    private void zeroFirst(EditText edit, char first) {
-        if(first == '0' && edit.isFocused())
-            edit.setText("");
-    }
-    private void doneButton(EditText edit, int actionId) {
-        if(actionId == EditorInfo.IME_ACTION_DONE) {
-            edit.clearFocus();
-            timeEmpty(edit);
-            InputMethodManager imm =  (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(edit.getWindowToken(), 0);
-        }
-    }
-    private void maxLengthCheck(EditText edit, EditText nextEdit, int length) {
-        if(edit.getText().length() == length) {
-            nextEdit.requestFocus();
-        }
-    }
-    private void maxLengthCheck(EditText edit, int length) {
-            if(edit.getText().length() == length) {
-                InputMethodManager imm =  (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(edit.getWindowToken(), 0);
-                edit.clearFocus();
-            }
-    }
-    private void setDateText() {
+    private void setDateAndPeriods() {
+        //RADIO GROUP
+        dateOrPeriod = (RadioGroup) findViewById(R.id.radioGroup);
+        dateOrPeriod.check(R.id.until);
+        //DATE
         dateText = (TextView) findViewById(R.id.dateText);
         dateFormat = new SimpleDateFormat("d-M-yyyy");
         dateText.setText(dateFormat.format(new Date().getTime()));
+        //SPINNER ADAPTERS
+        final ArrayAdapter<CharSequence> oneAdapter = ArrayAdapter.createFromResource(this,
+                R.array.one, android.R.layout.simple_spinner_item);
+        oneAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        final ArrayAdapter<CharSequence> pluralAdapter = ArrayAdapter.createFromResource(this,
+                R.array.plural, android.R.layout.simple_spinner_item);
+        pluralAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        //PERIOD
+        periodEdit = (EditText) findViewById(R.id.periodEdit);
+        periodSpinner = (Spinner) findViewById(R.id.periodSpinner);
+        periodNumber = 0;
+
+        periodSpinner.setAdapter(oneAdapter);
+        periodSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                periodNumber = position;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        periodEdit.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if(count == 1)
+                    zeroFirst(periodEdit, s.charAt(0));
+                if(s.toString().equals("1"))
+                    periodSpinner.setAdapter(oneAdapter);
+                else
+                    periodSpinner.setAdapter(pluralAdapter);
+                maxLengthCheck(periodEdit, 2);
+                dateOrPeriod.check(R.id.repeat);
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+        periodEdit.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                doneButton(periodEdit, actionId);
+                return false;
+            }
+        });
+
     }
     public void calendarPopup(View view) {
         LinearLayout calendarLayout = (LinearLayout) getLayoutInflater().inflate(R.layout.calendar_alert, null);
@@ -229,6 +292,7 @@ public class ActionActivity extends Activity {
                     public void onClick(DialogInterface dialog, int which) {
                         try {
                             calendar.setDate(dateFormat.parse(dateText.getText().toString()).getTime());
+                            dateOrPeriod.check(R.id.until);
                         } catch (ParseException e) {
                             e.printStackTrace();
                         }
@@ -245,19 +309,35 @@ public class ActionActivity extends Activity {
         alertDialog.setView(calendarLayout);
         alertDialog.show();
     }
-    public void addAction(View view) {
-        int amount = 0;
-
-        EditText actionName = (EditText) findViewById(R.id.actionName);
+    private long amountChanger() {
+        long amount;
         if(typeNumber == 0) {
-            EditText hours = (EditText) typeLayout.getChildAt(0);
-            EditText minutes = (EditText) typeLayout.getChildAt(2);
-            amount = 0;
+            EditText hoursEdit = (EditText) findViewById(R.id.hours);
+                editIsEmpty(hoursEdit);
+            EditText minutesEdit = (EditText) findViewById(R.id.minutes);
+                editIsEmpty(minutesEdit);
+            long hours = Long.parseLong(hoursEdit.getText().toString());
+            long minutes = Long.parseLong(minutesEdit.getText().toString());
+            amount = (hours*3600000)+(minutes*60000);
         }
+        else {
+            EditText amountEdit = (EditText) findViewById(R.id.otherType);
+                editIsEmpty(amountEdit);
+            amount = Long.parseLong(amountEdit.toString());
+        }
+        return amount;
+    }
+    public void addAction(View view) {
+        EditText actionName = (EditText) findViewById(R.id.actionName);
+        //TYPE AMOUNT CHANGER
+        editIsEmpty(periodEdit);
 
         String name = actionName.getText().toString();
         String type = typeSpinner.getChildAt(typeNumber).toString();
-
+        long amount = amountChanger();
+        String date = dateText.getText().toString();
+        String repeat = periodEdit.getText().toString();
+        String often = periodSpinner.getItemAtPosition(periodNumber).toString();
 
     }
 }
