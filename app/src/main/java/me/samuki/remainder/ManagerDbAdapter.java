@@ -211,4 +211,17 @@ public class ManagerDbAdapter {
         return action;
     }
 
+    int actionCount() {
+        String query = "SELECT "+KEY_ID+" FROM "+DB_ACTION_TABLE;
+        Cursor cursor = db.rawQuery(query, null);
+        cursor.moveToFirst();
+        int count = cursor.getCount();
+        cursor.close();
+        return count;
+    }
+
+    public void deletEverything() {
+        db.execSQL(DROP_ACTION_TABLE);
+        db.execSQL(CREATE_ACTION_TABLE);
+    }
 }

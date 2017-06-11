@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -23,6 +24,7 @@ import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -42,6 +44,8 @@ public class ActionActivity extends Activity {
     private int periodNumber;
     //Data format
     private SimpleDateFormat dateFormat;
+
+    private ManagerDbAdapter database;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,6 +56,8 @@ public class ActionActivity extends Activity {
         setTimeLayout();
         setSpinner();
         setDateAndPeriods();
+
+        database = new ManagerDbAdapter(this);
     }
     private boolean editIsEmpty(EditText edit) {
         if(edit.getText().toString().equals("")) {
@@ -59,6 +65,9 @@ public class ActionActivity extends Activity {
             return true;
         }
         return false;
+    }
+    private boolean editIsEmpty(EditText edit, boolean test) {
+        return edit.getText().toString().equals("");
     }
     private void zeroFirst(EditText edit, char first) {
         if(first == '0' && edit.isFocused())
@@ -284,6 +293,7 @@ public class ActionActivity extends Activity {
             public void onSelectedDayChange(@NonNull CalendarView view,
                                             int year, int month, int dayOfMonth) {
                 dateText.setText(dayOfMonth + "-" + ++month + "-" + year);
+                System.out.println(dateText.getText());
             }
         });
         AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this)
@@ -323,21 +333,39 @@ public class ActionActivity extends Activity {
         else {
             EditText amountEdit = (EditText) findViewById(R.id.otherType);
                 editIsEmpty(amountEdit);
-            amount = Long.parseLong(amountEdit.toString());
+            amount = Long.parseLong(amountEdit.getText().toString());
         }
         return amount;
     }
+    private void fillFormYouMoron() {
+        Toast.makeText(this, "You have to fill all required things!", Toast.LENGTH_SHORT).show();
+    }
     public void addAction(View view) {
         EditText actionName = (EditText) findViewById(R.id.actionName);
+        EditText periodEdit = (EditText) findViewById(R.id.periodEdit);
         //TYPE AMOUNT CHANGER
-        editIsEmpty(periodEdit);
 
         String name = actionName.getText().toString();
-        String type = typeSpinner.getChildAt(typeNumber).toString();
+        System.out.println(typeSpinner.getSelectedItem().toString());
+        String type = typeSpinner.getSelectedItem().toString();
         long amount = amountChanger();
         String date = dateText.getText().toString();
-        String repeat = periodEdit.getText().toString();
-        String often = periodSpinner.getItemAtPosition(periodNumber).toString();
+
+        if(!editIsEmpty(actionName, true) && amount != 0 && !editIsEmpty(periodEdit, true) || dateOrPeriod.getCheckedRadioButtonId() == R.id.until) {
+            database.open();
+            if (dateOrPeriod.getCheckedRadioButtonId() == R.id.until) {
+                database.insertAction(name, type, amount, date);
+            } else if(dateOrPeriod.getCheckedRadioButtonId() == R.id.repeat){
+                int repeat = Integer.parseInt(periodEdit.getText().toString());
+                String often = periodSpinner.getItemAtPosition(periodNumber).toString();
+                database.insertAction(name, type, amount, repeat, often);
+            }
+            database.close();
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+        }
+        else
+            fillFormYouMoron();
 
     }
 }
