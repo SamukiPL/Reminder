@@ -28,6 +28,7 @@ import android.widget.Toast;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 
@@ -355,10 +356,12 @@ public class ActionActivity extends Activity {
             database.open();
             if (dateOrPeriod.getCheckedRadioButtonId() == R.id.until) {
                 database.insertAction(name, type, amount, date);
-            } else if(dateOrPeriod.getCheckedRadioButtonId() == R.id.repeat){
+            } else if(dateOrPeriod.getCheckedRadioButtonId() == R.id.repeat){;
+                Calendar cal = Calendar.getInstance();
+                date = dateFormat.format(cal.getTime());
                 int repeat = Integer.parseInt(periodEdit.getText().toString());
                 String often = periodSpinner.getItemAtPosition(periodNumber).toString();
-                database.insertAction(name, type, amount, repeat, often);
+                database.insertAction(name, type, amount, date, repeat, often);
             }
             database.close();
             Intent intent = new Intent(this, MainActivity.class);

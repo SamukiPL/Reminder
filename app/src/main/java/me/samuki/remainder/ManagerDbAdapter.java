@@ -133,11 +133,12 @@ public class ManagerDbAdapter {
         return db.insert(DB_ACTION_TABLE, null, newValue);
     }
 
-    public long insertAction(String name, String type, long amount, int repeat, String often) {
+    public long insertAction(String name, String type, long amount, String date, int repeat, String often) {
         ContentValues newValue = new ContentValues();
         newValue.put(KEY_ACTION_NAME, name);
         newValue.put(KEY_TYPE, type);
         newValue.put(KEY_AMOUNT, amount);
+        newValue.put(KEY_DATE, date);
         newValue.put(KEY_REPEAT, repeat);
         newValue.put(KEY_OFTEN, often);
         return db.insert(DB_ACTION_TABLE, null, newValue);

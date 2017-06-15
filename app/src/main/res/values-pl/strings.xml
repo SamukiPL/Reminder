@@ -16,14 +16,12 @@
     </string-array>
     <string-array name="one">
         <item>dzień</item>
-        <item>weekend</item>
         <item>tydzień</item>
         <item>miesiąc</item>
         <item>rok</item>
     </string-array>
     <string-array name="plural">
         <item>dni</item>
-        <item>weekendy</item>
         <item>tygodnie</item>
         <item>miesiące</item>
         <item>lata</item>

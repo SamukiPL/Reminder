@@ -1,38 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/actionrow"
+    android:padding="5dp"
+    android:layout_marginTop="5dp">
     <TextView
         android:id="@+id/actionRow_name"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="20dp"
+        android:textSize="20sp"/>
     <TextView
         android:id="@+id/actionRow_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toEndOf="@id/actionRow_name"/>
-    <TextView
-        android:id="@+id/actionRow_options"
+    <Button
+        android:id="@+id/actionRow_settings"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toEndOf="@id/actionRow_time"
+        android:minHeight="1dp"
+        android:minWidth="1dp"
+        android:background="@drawable/settingsbutton"
         android:layout_alignParentEnd="true"/>
     <TextView
         android:id="@+id/actionRow_progress"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/actionRow_name"/>
+        android:layout_height="match_parent"
+        android:layout_below="@id/actionRow_name"
+        android:textSize="40sp"/>
     <TextView
         android:id="@+id/actionRow_slash"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/actionRow_name"
+        android:textSize="40sp"
         android:layout_toEndOf="@id/actionRow_progress"/>
     <TextView
         android:id="@+id/actionRow_amount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/actionRow_name"
+        android:textSize="40sp"
         android:layout_toEndOf="@id/actionRow_slash"/>
     <TextView
         android:id="@+id/actionRow_type"
@@ -41,21 +52,35 @@
         android:layout_below="@id/actionRow_name"
         android:layout_toEndOf="@id/actionRow_amount"/>
     <Button
-        android:id="@+id/actionRow_plus"
+        android:id="@+id/actionRow_done"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/actionRow_name"
-        android:layout_toEndOf="@id/actionRow_type"/>
+        android:layout_alignParentEnd="true"
+        android:minWidth="1dp"
+        android:text="@string/allDone"/>
     <Button
-        android:id="@+id/actionRow_plusMore"
+        android:id="@+id/actionRow_ten"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/actionRow_name"
-        android:layout_toEndOf="@id/actionRow_plus"/>
+        android:layout_toStartOf="@id/actionRow_done"
+        android:minWidth="1dp"
+        android:text="@string/plusTen"/>
     <Button
-        android:id="@+id/actionRow_end"
+        android:id="@+id/actionRow_five"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/actionRow_name"
-        android:layout_toEndOf="@id/actionRow_plusMore"/>
+        android:layout_toStartOf="@id/actionRow_ten"
+        android:minWidth="1dp"
+        android:text="@string/plusFive"/>
+    <Button
+        android:id="@+id/actionRow_one"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/actionRow_name"
+        android:layout_toStartOf="@id/actionRow_five"
+        android:minWidth="1dp"
+        android:text="@string/plusOne"/>
 </RelativeLayout>
