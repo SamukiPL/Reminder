@@ -1,8 +1,9 @@
 package me.samuki.remainder;
 
 import android.app.Activity;
-import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.annotation.Nullable;
@@ -25,7 +26,8 @@ public class MainActivity extends Activity {
     LinearLayout actionsLayout;
     SimpleDateFormat dateFormat;
     Calendar cal;
-    List<CountDownTimer> timerList;
+    List<CustomTimerClass> timerList;
+    long toBeDone[];
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,112 +40,99 @@ public class MainActivity extends Activity {
         ManagerDbAdapter database = new ManagerDbAdapter(this);
         database.open();
         int actionsAmount = database.actionCount();
+        toBeDone = new long[actionsAmount];
         setActionsLayout(actionsAmount, database);
-        /*
-        new CountDownTimer(database.getAction(actionsAmount).getAmount(), 1000) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                System.out.println(millisUntilFinished/600);
-            }
-
-            @Override
-            public void onFinish() {
-                System.out.println("KONIEC!!!");
-            }
-        }.start();*/
         database.close();
     }
     private void setActionsLayout(int actionsAmount, ManagerDbAdapter database) {
         for (int i = 1; i <= actionsAmount; i++) {
-            RelativeLayout actionRow = (RelativeLayout)getLayoutInflater().inflate(R.layout.action_row, null);
             ActionTodo action = database.getAction(i);
+            if(action.getActive() == 1) {
+                RelativeLayout actionRow = (RelativeLayout) getLayoutInflater().inflate(R.layout.action_row, null);
 
-            TextView name =(TextView) actionRow.getChildAt(0);
-            name.setText(action.getName());
+                TextView name = (TextView) actionRow.getChildAt(0);
+                name.setText(action.getName());
 
-            TextView time =(TextView) actionRow.getChildAt(1);
-            if(action.getOften().equals("default")) {
-                Date startDate = cal.getTime();
-                Date endDate = new Date();
-                try {
-                    endDate = dateFormat.parse(action.getDate());
-                } catch (ParseException e) {
-                    e.printStackTrace();
+                TextView time = (TextView) actionRow.getChildAt(1);
+                if (action.getOften().equals("default")) {
+                    Date startDate = cal.getTime();
+                    Date endDate = new Date();
+                    try {
+                        endDate = dateFormat.parse(action.getDate());
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    long timeLeft = endDate.getTime() - startDate.getTime();
+                    time.setText(getString(R.string.amountText, TimeUnit.DAYS.convert(timeLeft, TimeUnit.MILLISECONDS) + 1));
+                } else {
+                    Date startDate = cal.getTime();
+                    Date endDate = cal.getTime();
+                    String often = action.getOften();
+                    long oftenMulti;
+                    String[] oftenOnes = getResources().getStringArray(R.array.one);
+                    String[] oftenPlurals = getResources().getStringArray(R.array.plural);
+
+                    if (often.equals(oftenOnes[0]) || often.equals(oftenPlurals[0]))
+                        oftenMulti = 1;
+                    else if (often.equals(oftenOnes[1]) || often.equals(oftenPlurals[1]))
+                        oftenMulti = 7;
+                    else if (often.equals(oftenOnes[2]) || often.equals(oftenPlurals[2]))
+                        oftenMulti = 30;
+                    else
+                        oftenMulti = 365;
+
+                    long repeat = action.getRepeat() * oftenMulti;
+                    try {
+                        startDate = dateFormat.parse(action.getDate());
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println(startDate + "     TAK   " + endDate);
+                    long timeLeft = (Math.abs(startDate.getTime() - endDate.getTime()));
+                    long daysLeft = repeat - (TimeUnit.DAYS.convert(timeLeft, TimeUnit.MILLISECONDS) % (repeat + 1));
+                    time.setText(getString(R.string.amountText, daysLeft));
                 }
-                long timeLeft = endDate.getTime() - startDate.getTime();
-                time.setText(getString(R.string.amountText, TimeUnit.DAYS.convert(timeLeft, TimeUnit.MILLISECONDS)));
-            }
-            else {
-                Date startDate = cal.getTime();
-                Date endDate = cal.getTime();
-                String often = action.getOften();
-                long oftenMulti;
-                String[] oftenOnes = getResources().getStringArray(R.array.one);
-                String[] oftenPlurals = getResources().getStringArray(R.array.plural);
 
-                if(often.equals(oftenOnes[0]) || often.equals(oftenPlurals[0]))
-                    oftenMulti = 1;
-                else if(often.equals(oftenOnes[1]) || often.equals(oftenPlurals[1]))
-                    oftenMulti = 7;
-                else if(often.equals(oftenOnes[2]) || often.equals(oftenPlurals[2]))
-                    oftenMulti = 30;
-                else
-                    oftenMulti = 365;
+                TextView progress = (TextView) actionRow.getChildAt(3);
+                progress.setText("0");
 
-                long repeat = action.getRepeat()*oftenMulti;
-                try {
-                    startDate = dateFormat.parse(action.getDate());
-                } catch (ParseException e) {
-                    e.printStackTrace();
+                TextView slash = (TextView) actionRow.getChildAt(4);
+                slash.setText("/");
+
+                String actionType = action.getType();
+                TextView amount = (TextView) actionRow.getChildAt(5);
+                long howMuch = action.getAmount();
+                LinearLayout actionRowButtons = (LinearLayout) actionRow.getChildAt(7);
+                LinearLayout buttons;
+                Button startButton;
+                //FOR TIMER
+                TextView invisibleView = (TextView) actionRow.getChildAt(8);
+                invisibleView.setText(getString(R.string.amountText, howMuch));
+                TextView positionView = (TextView) actionRow.getChildAt(10);
+
+                if (actionType.equals("Time")) {
+                    setTimeToTextView(amount, howMuch);
+                    progress.setText(getString(R.string.amountTime, 0, 0, 0));
+                    buttons = (LinearLayout) getLayoutInflater().inflate(R.layout.time_buttons, null);
+                    startButton = (Button) buttons.getChildAt(0);
+                    positionView.setText(getString(R.string.amountText, timerList.size() - 1));
+                    toBeDone[i-1] = howMuch;
+                    timerList.add(new CustomTimerClass(this, progress, startButton, howMuch, toBeDone[i-1]));
+                } else {
+                    amount.setText(getString(R.string.amountText, howMuch));
+                    TextView type = (TextView) actionRow.getChildAt(6);
+                    type.setText(action.getType());
+                    buttons = (LinearLayout) getLayoutInflater().inflate(R.layout.other_buttons, null);
+                    toBeDone[i-1] = howMuch;
                 }
-                System.out.println(startDate +"     TAK   " + endDate);
-                long timeLeft = ( Math.abs(startDate.getTime() - endDate.getTime()));
-                long daysLeft = repeat - (TimeUnit.DAYS.convert(timeLeft, TimeUnit.MILLISECONDS)%repeat);
-                time.setText(getString(R.string.amountText, daysLeft));
+                actionRowButtons.addView(buttons);
+
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                params.setMargins(0, 0, 0, 25);
+                actionRow.setLayoutParams(params);
+                actionsLayout.addView(actionRow);
             }
-
-            TextView progress =(TextView) actionRow.getChildAt(3);
-            progress.setText("0");
-
-            TextView slash =(TextView) actionRow.getChildAt(4);
-            slash.setText("/");
-
-            String actionType = action.getType();
-            TextView amount = (TextView) actionRow.getChildAt(5);
-            long howMuch = action.getAmount();
-            LinearLayout actionRowButtons = (LinearLayout) actionRow.getChildAt(7);
-            LinearLayout buttons;
-            Button startButton;
-            //FOR TIMER
-            TextView invisibleView = (TextView)actionRow.getChildAt(8);
-            invisibleView.setText(getString(R.string.amountText, howMuch));
-            TextView doneView = (TextView)actionRow.getChildAt(9);
-            TextView positionView = (TextView)actionRow.getChildAt(10);
-
-            if(actionType.equals("Time")) {
-                setTimeToTextView(amount, howMuch);
-                progress.setText(getString(R.string.amountTime, 0,0,0));
-                buttons = (LinearLayout) getLayoutInflater().inflate(R.layout.time_buttons, null);
-                startButton = (Button)buttons.getChildAt(0);
-                setTimer(progress, howMuch, startButton, doneView);
-                positionView.setText(getString(R.string.amountText, timerList.size()-1));
-            }
-            else {
-                amount.setText(getString(R.string.amountText, howMuch));
-                TextView type =(TextView) actionRow.getChildAt(6);
-                type.setText(action.getType());
-                buttons  = (LinearLayout) getLayoutInflater().inflate(R.layout.other_buttons, null);
-            }
-            actionRowButtons.addView(buttons);
-
-
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            params.setMargins(0,0,0,25);
-            actionRow.setLayoutParams(params);
-            actionsLayout.addView(actionRow);
-
         }
-
     }
 
     private void setTimeToTextView(TextView textView, long amount) {
@@ -153,20 +142,12 @@ public class MainActivity extends Activity {
         int minuteOnes = minutes - (minuteTens*10);
         textView.setText(getString(R.string.amountTime, hours, minuteTens, minuteOnes));
     }
-    private void setTimer(final TextView progress, final long howMuch, final Button button, final TextView doneView) {
-        timerList.add(new CountDownTimer(howMuch, 1000) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                setTimeToTextView(progress, Math.abs(millisUntilFinished-howMuch));
-                doneView.setText(getString(R.string.amountText, Math.abs(millisUntilFinished)));
-            }
-
-            @Override
-            public void onFinish() {
-                setTimeToTextView(progress, Math.abs(howMuch));
-                button.setVisibility(View.GONE);
-            }
-        });
+    public static void setTimeToTextView(Context context, TextView textView, long amount) {
+        int hours = (int)amount/3600000;
+        int minutes = (int)(amount-(hours*3600000))/60000;
+        int minuteTens = minutes/10;
+        int minuteOnes = minutes - (minuteTens*10);
+        textView.setText(context.getString(R.string.amountTime, hours, minuteTens, minuteOnes));
     }
 
     public void newAction(View view) {
@@ -179,15 +160,56 @@ public class MainActivity extends Activity {
         String state = button.getText().toString();
         RelativeLayout actionRow = (RelativeLayout)button.getParent().getParent().getParent();
         TextView howMuchView = (TextView)actionRow.getChildAt(8);
-        TextView positionView = (TextView)actionRow.getChildAt(9);
+        TextView positionView = (TextView)actionRow.getChildAt(10);
         long howMuch = Long.parseLong(howMuchView.getText().toString());
         if(state.equals(getString(R.string.start))) {
             button.setText(getString(R.string.stop));
-            timerList.get(Integer.parseInt(positionView.getText().toString())).start();
+            timerList.get(Integer.parseInt(positionView.getText().toString())+1).start();
         }
         else if(state.equals(getString(R.string.stop))) {
             button.setText(getString(R.string.start));
-            timerList.get(Integer.parseInt(positionView.getText().toString())).cancel();
+            timerList.get(Integer.parseInt(positionView.getText().toString())+1).cancel();
         }
+    }
+}
+class CustomTimerClass {
+    private Context context;
+    private CountDownTimer timer;
+    private TextView progress;
+    private Button button;
+    private long howMuch;
+    private long toBeDone;
+    public CustomTimerClass(Context context, TextView view, Button button, long howMuch, long toBeDone) {
+        this.context = context;
+        progress = view;
+        this.button = button;
+        this.howMuch = howMuch;
+        this.toBeDone = toBeDone;
+    }
+
+    private void setTimer() {
+        timer = new CountDownTimer(toBeDone, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                System.out.println(toBeDone);
+                MainActivity.setTimeToTextView(context, progress, Math.abs(howMuch -toBeDone));
+                toBeDone = millisUntilFinished;
+            }
+
+            @Override
+            public void onFinish() {
+                MainActivity.setTimeToTextView(context, progress, Math.abs(howMuch));
+                button.setVisibility(View.GONE);
+            }
+        };
+    }
+
+    public void start() {
+        setTimer();
+        timer.start();
+    }
+
+    public void cancel() {
+        timer.cancel();
     }
 }
