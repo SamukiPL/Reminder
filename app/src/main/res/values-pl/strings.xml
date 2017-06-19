@@ -26,4 +26,11 @@
         <item>miesiące</item>
         <item>lata</item>
     </string-array>
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+    <string name="allDone">Zrobione</string>
+    <string name="amountTime">%1$d:%2$d%3$d</string>
+    <string name="plusFive">+5</string>
+    <string name="plusTen">+10</string>
+    <string name="plusOne">+1</string>
 </resources>

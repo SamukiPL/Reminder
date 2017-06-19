@@ -3,39 +3,39 @@
     <item>
         <shape>
             <solid android:color="#D2D3D3" />
-            <size  android:height="35dp"
-                android:width="15dp" />
-            <corners android:radius="5dp" />
+            <size  android:height="21dp"
+                android:width="9dp" />
+            <corners android:radius="8dp" />
         </shape>
     </item>
     <item android:bottom="1dp" android:right="1dp">
         <shape>
             <solid android:color="#D6D7D7" />
-            <corners android:radius="5dp" />
+            <corners android:radius="8dp" />
         </shape>
     </item>
-    <item android:top="5dp" android:bottom="25dp" android:left="5dp" android:right="5dp">
+    <item android:top="3dp" android:bottom="15dp" android:left="3dp" android:right="3dp">
         <shape>
             <solid android:color="#9E9E9E" />
-            <size  android:height="5dp"
-                android:width="5dp" />
-            <corners android:radius="5dp"/>
+            <size  android:height="3dp"
+                android:width="3dp" />
+            <corners android:radius="3dp"/>
         </shape>
     </item>
-    <item android:top="15dp" android:bottom="15dp" android:left="5dp" android:right="5dp">
+    <item android:top="9dp" android:bottom="9dp" android:left="3dp" android:right="3dp">
         <shape>
             <solid android:color="#9E9E9E" />
-            <size  android:height="5dp"
-                android:width="5dp" />
-            <corners android:radius="5dp"/>
+            <size  android:height="3dp"
+                android:width="3dp" />
+            <corners android:radius="3dp"/>
         </shape>
     </item>
-    <item android:top="25dp" android:bottom="5dp" android:left="5dp" android:right="5dp">
+    <item android:top="15dp" android:bottom="3dp" android:left="3dp" android:right="3dp">
         <shape>
             <solid android:color="#9E9E9E" />
-            <size  android:height="5dp"
-                android:width="5dp" />
-            <corners android:radius="5dp"/>
+            <size  android:height="3dp"
+                android:width="3dp" />
+            <corners android:radius="3dp"/>
         </shape>
     </item>
 </layer-list>

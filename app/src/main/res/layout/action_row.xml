@@ -10,7 +10,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="10dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="8dp"
         android:textSize="20sp"/>
     <TextView
         android:id="@+id/actionRow_time"
@@ -51,36 +51,28 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/actionRow_name"
         android:layout_toEndOf="@id/actionRow_amount"/>
-    <Button
-        android:id="@+id/actionRow_done"
+    <LinearLayout
+        android:id="@+id/actionRow_buttons"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:layout_below="@id/actionRow_name"
-        android:layout_alignParentEnd="true"
-        android:minWidth="1dp"
-        android:text="@string/allDone"/>
-    <Button
-        android:id="@+id/actionRow_ten"
+        android:layout_alignParentEnd="true">
+
+    </LinearLayout>
+    <TextView
+        android:id="@+id/actionRow_howMuch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/actionRow_name"
-        android:layout_toStartOf="@id/actionRow_done"
-        android:minWidth="1dp"
-        android:text="@string/plusTen"/>
-    <Button
-        android:id="@+id/actionRow_five"
+        android:visibility="gone"/>
+    <TextView
+        android:id="@+id/actionRow_howMuchDone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/actionRow_name"
-        android:layout_toStartOf="@id/actionRow_ten"
-        android:minWidth="1dp"
-        android:text="@string/plusFive"/>
-    <Button
-        android:id="@+id/actionRow_one"
+        android:visibility="gone"/>
+    <TextView
+        android:id="@+id/actionRow_positionNumber"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/actionRow_name"
-        android:layout_toStartOf="@id/actionRow_five"
-        android:minWidth="1dp"
-        android:text="@string/plusOne"/>
+        android:visibility="gone"/>
 </RelativeLayout>
