@@ -12,6 +12,7 @@
         <item>Lines</item>
         <item>Items</item>
     </string-array>
+    <string name="time">Time</string>
     <string-array name="one">
         <item>day</item>
         <item>week</item>
@@ -24,12 +25,17 @@
         <item>months</item>
         <item>years</item>
     </string-array>
-    <string name="amountText">%1$d</string>
-    <string name="amountTime">%1$d:%2$d%3$d</string>
+    <string name="amountText" translatable="false">%1$d</string>
+    <string name="amountTime" translatable="false">%1$d:%2$d%3$d</string>
     <string name="start">Start</string>
     <string name="stop">Stop</string>
-    <string name="plusOne">+1</string>
-    <string name="plusTen">+10</string>
-    <string name="plusHundred">+100</string>
+    <string name="plusOne" translatable="false">+1</string>
+    <string name="plusTen" translatable="false">+10</string>
+    <string name="plusHundred" translatable="false">+100</string>
     <string name="allDone">Done</string>
+    <plurals name="daysLeft">
+        <item quantity="one">%1$d day left</item>
+        <item quantity="other">%1$d days left</item>
+    </plurals>
+    <string name="date" translatable="false">%1$d-%2$d-%3$d</string>
 </resources>

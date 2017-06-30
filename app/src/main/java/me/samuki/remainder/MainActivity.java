@@ -1,11 +1,16 @@
 package me.samuki.remainder;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +19,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -28,13 +34,19 @@ public class MainActivity extends Activity {
     Calendar cal;
     List<CustomTimerClass> timerList;
     long toBeDone[];
+
+    public static List<TextView> textViewList;
+    public static List<Long[]> longList;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
-        dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+        dateFormat = new SimpleDateFormat("d-M-yyyy");
         cal = Calendar.getInstance();
         timerList = new ArrayList<>();
+        textViewList = new ArrayList<>();
+        longList = new ArrayList<>();
 
         actionsLayout = (LinearLayout)findViewById(R.id.actionsHere);
         ManagerDbAdapter database = new ManagerDbAdapter(this);
@@ -63,7 +75,8 @@ public class MainActivity extends Activity {
                         e.printStackTrace();
                     }
                     long timeLeft = endDate.getTime() - startDate.getTime();
-                    time.setText(getString(R.string.amountText, TimeUnit.DAYS.convert(timeLeft, TimeUnit.MILLISECONDS) + 1));
+                    int daysLeft = (int)(TimeUnit.DAYS.convert(timeLeft, TimeUnit.MILLISECONDS) + 1);
+                    time.setText(getResources().getQuantityString(R.plurals.daysLeft, daysLeft, daysLeft));
                 } else {
                     Date startDate = cal.getTime();
                     Date endDate = cal.getTime();
@@ -89,8 +102,8 @@ public class MainActivity extends Activity {
                     }
                     System.out.println(startDate + "     TAK   " + endDate);
                     long timeLeft = (Math.abs(startDate.getTime() - endDate.getTime()));
-                    long daysLeft = repeat - (TimeUnit.DAYS.convert(timeLeft, TimeUnit.MILLISECONDS) % (repeat + 1));
-                    time.setText(getString(R.string.amountText, daysLeft));
+                    int daysLeft = (int) (repeat - (TimeUnit.DAYS.convert(timeLeft, TimeUnit.MILLISECONDS) % (repeat + 1)));
+                    time.setText(getResources().getQuantityString(R.plurals.daysLeft, daysLeft, daysLeft));
                 }
 
                 TextView progress = (TextView) actionRow.getChildAt(3);
@@ -110,7 +123,7 @@ public class MainActivity extends Activity {
                 invisibleView.setText(getString(R.string.amountText, howMuch));
                 TextView positionView = (TextView) actionRow.getChildAt(10);
 
-                if (actionType.equals("Time")) {
+                if (actionType.equals(getString(R.string.time))) {
                     setTimeToTextView(amount, howMuch);
                     progress.setText(getString(R.string.amountTime, 0, 0, 0));
                     buttons = (LinearLayout) getLayoutInflater().inflate(R.layout.time_buttons, null);
@@ -147,7 +160,8 @@ public class MainActivity extends Activity {
         int minutes = (int)(amount-(hours*3600000))/60000;
         int minuteTens = minutes/10;
         int minuteOnes = minutes - (minuteTens*10);
-        textView.setText(context.getString(R.string.amountTime, hours, minuteTens, minuteOnes));
+        String tak = context.getString(R.string.amountTime, hours, minuteTens, minuteOnes);
+        textView.setText(tak);
     }
 
     public void newAction(View view) {
@@ -161,7 +175,6 @@ public class MainActivity extends Activity {
         RelativeLayout actionRow = (RelativeLayout)button.getParent().getParent().getParent();
         TextView howMuchView = (TextView)actionRow.getChildAt(8);
         TextView positionView = (TextView)actionRow.getChildAt(10);
-        long howMuch = Long.parseLong(howMuchView.getText().toString());
         if(state.equals(getString(R.string.start))) {
             button.setText(getString(R.string.stop));
             timerList.get(Integer.parseInt(positionView.getText().toString())+1).start();
@@ -173,43 +186,57 @@ public class MainActivity extends Activity {
     }
 }
 class CustomTimerClass {
+
     private Context context;
-    private CountDownTimer timer;
     private TextView progress;
     private Button button;
     private long howMuch;
-    private long toBeDone;
-    public CustomTimerClass(Context context, TextView view, Button button, long howMuch, long toBeDone) {
+    long toBeDone;
+    Long[] longs;
+    private TimerService timerService;
+    private Intent timerIntent;
+
+    CustomTimerClass(Context context, TextView view, Button button, long howMuch, long toBeDone) {
         this.context = context;
-        progress = view;
+        this.progress = view;
         this.button = button;
         this.howMuch = howMuch;
         this.toBeDone = toBeDone;
-    }
 
-    private void setTimer() {
-        timer = new CountDownTimer(toBeDone, 1000) {
+        timerService = new TimerService();
+        timerIntent = new Intent(context, timerService.getClass());
+        timerIntent.putExtra("howMuch", howMuch);
+        timerIntent.putExtra("toBeDone", toBeDone);
+
+        ServiceConnection connection = new ServiceConnection() {
             @Override
-            public void onTick(long millisUntilFinished) {
-                System.out.println(toBeDone);
-                MainActivity.setTimeToTextView(context, progress, Math.abs(howMuch -toBeDone));
-                toBeDone = millisUntilFinished;
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                TimerService.MyBinder binder = (TimerService.MyBinder)service;
+                timerService = binder.getServiceSystem();
             }
 
             @Override
-            public void onFinish() {
-                MainActivity.setTimeToTextView(context, progress, Math.abs(howMuch));
-                button.setVisibility(View.GONE);
+            public void onServiceDisconnected(ComponentName name) {
+
             }
         };
     }
 
-    public void start() {
-        setTimer();
-        timer.start();
+    void start() {
+        MainActivity.textViewList.add(progress);
+        longs = new Long[]{howMuch, toBeDone};
+        MainActivity.longList.add(longs);
+        context.startService(timerIntent);
+        
     }
 
-    public void cancel() {
-        timer.cancel();
+    void cancel() {
+        context.stopService(timerIntent);
+        MainActivity.textViewList.remove(progress);
+        MainActivity.longList.remove(longs);
+    }
+
+    long getToBeDone() {
+        return timerService.toBeDone;
     }
 }

@@ -4,7 +4,6 @@
     <string name="add">Dodaj</string>
     <string name="addNew">Dodaj Akcję</string>
     <string name="newAction">Nowa Akcja</string>
-    <string name="amountText">%1$d</string>
     <string name="calendarTitle">Ustaw swoją datę</string>
     <string name="repeat">Powtarzaj co</string>
     <string name="until">Do</string>
@@ -29,8 +28,10 @@
     <string name="start">Start</string>
     <string name="stop">Stop</string>
     <string name="allDone">Zrobione</string>
-    <string name="amountTime">%1$d:%2$d%3$d</string>
-    <string name="plusHundred">+100</string>
-    <string name="plusTen">+10</string>
-    <string name="plusOne">+1</string>
+    <plurals name="daysLeft">
+        <item quantity="one">Został %1$d dzień</item>
+        <item quantity="few">Zostały %1$d dni</item>
+        <item quantity="many">Zostało %1$d dni</item>
+    </plurals>
+    <string name="time">Czas</string>
 </resources>

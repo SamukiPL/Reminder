@@ -10,13 +10,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="10dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="0dp"
         android:textSize="20sp"/>
     <TextView
         android:id="@+id/actionRow_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toEndOf="@id/actionRow_name"/>
+        android:layout_toEndOf="@id/actionRow_name"
+        android:textSize="20sp"/>
     <Button
         android:id="@+id/actionRow_settings"
         android:layout_width="wrap_content"
@@ -30,7 +31,8 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_below="@id/actionRow_name"
-        android:textSize="40sp"/>
+        android:textSize="40sp"
+        android:layout_marginBottom="0dp"/>
     <TextView
         android:id="@+id/actionRow_slash"
         android:layout_width="wrap_content"
@@ -50,13 +52,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/actionRow_name"
-        android:layout_toEndOf="@id/actionRow_amount"/>
+        android:layout_toEndOf="@id/actionRow_amount"
+        android:layout_marginStart="10dp"
+        android:textSize="40sp"/>
     <LinearLayout
         android:id="@+id/actionRow_buttons"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_below="@id/actionRow_name"
+        android:layout_below="@id/actionRow_progress"
         android:layout_alignParentEnd="true">
 
     </LinearLayout>

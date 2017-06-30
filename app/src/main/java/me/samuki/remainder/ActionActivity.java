@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.MenuItemHoverListener;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -18,6 +19,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CalendarView;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
@@ -114,7 +116,7 @@ public class ActionActivity extends Activity {
         });
     }
     private void changeInputType(String type) {
-        if(type.equals("Time"))
+        if(type.equals(getString(R.string.time)))
             setTimeLayout();
         else {
             setOtherTypeLayout(type);
@@ -282,37 +284,32 @@ public class ActionActivity extends Activity {
     }
     public void calendarPopup(View view) {
         LinearLayout calendarLayout = (LinearLayout) getLayoutInflater().inflate(R.layout.calendar_alert, null);
-        final CalendarView calendar = (CalendarView) calendarLayout.getChildAt(0);
-        calendar.setMinDate(new Date().getTime());
+        final DatePicker dataPicker = (DatePicker) calendarLayout.getChildAt(0);
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        dataPicker.setMinDate(calendar.getTimeInMillis());
+
         try {
-            calendar.setDate(dateFormat.parse(dateText.getText().toString()).getTime());
+            calendar.setTime(dateFormat.parse(dateText.getText().toString()));
         } catch (ParseException e) {
-            calendar.setDate(new Date().getTime());
+            e.printStackTrace();
         }
-        calendar.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
-            @Override
-            public void onSelectedDayChange(@NonNull CalendarView view,
-                                            int year, int month, int dayOfMonth) {
-                dateText.setText(dayOfMonth + "-" + ++month + "-" + year);
-                System.out.println(dateText.getText());
-            }
-        });
+
+        dataPicker.updateDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
         AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this)
                 .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        try {
-                            calendar.setDate(dateFormat.parse(dateText.getText().toString()).getTime());
-                            dateOrPeriod.check(R.id.until);
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
+                        dateText.setText(getString(R.string.date, dataPicker.getDayOfMonth(), dataPicker.getMonth()+1, dataPicker.getYear()));
+                        dateOrPeriod.check(R.id.until);
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        dateText.setText(dateFormat.format(calendar.getDate()));
                     }
                 });
         AlertDialog alertDialog = alertBuilder.create();
