@@ -70,7 +70,7 @@
         android:layout_height="wrap_content"
         android:visibility="gone"/>
     <TextView
-        android:id="@+id/actionRow_howMuchDone"
+        android:id="@+id/actionRow_toBeDone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"/>
