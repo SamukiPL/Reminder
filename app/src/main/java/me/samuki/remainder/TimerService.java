@@ -15,10 +15,14 @@ import android.support.v4.app.NotificationCompat;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
+
 import java.sql.Time;
 
 
 public class TimerService extends Service{
+    private final IBinder mBinder = new LocalBinder();
+
     NotificationManager notificationManager;
     NotificationCompat.Builder notificationBuilder;
     Notification notification;
@@ -26,13 +30,16 @@ public class TimerService extends Service{
     CountDownTimer timer;
     long howMuch;
     long toBeDone;
+    Context context;
+    TextView progress;
+    CustomTimerClass customTimerClass;
 
     TimerService(){}
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return mBinder;
     }
 
     @Override
@@ -42,48 +49,64 @@ public class TimerService extends Service{
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        int notifyID = 101;
+        toBeDone = -1;
+        if(!intent.getAction().equals("Binding")) {
+            context = getApplicationContext();
+            notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            int notifyID = 101;
 
-        notificationBuilder = new NotificationCompat.Builder(this)
-                .setContentTitle("Your Progress")
-                .setTicker("Your Progress")
-                .setContentText("Progress")
-                .setSmallIcon(R.drawable.ic_launcher_round)
-                .setOngoing(true);
-
-        if(intent.getAction().equals("Start")) {
-            howMuch = (long)intent.getExtras().get("howMuch");
-            toBeDone = (long)intent.getExtras().get("toBeDone");
-
+            notificationBuilder = new NotificationCompat.Builder(this)
+                    .setContentTitle("Your Progress")
+                    .setTicker("Your Progress")
+                    .setContentText("Progress")
+                    .setSmallIcon(R.drawable.ic_launcher_round)
+                    .setOngoing(true);
+            //NOTIFICATION INTENT
             Intent notificationIntent = new Intent(this, MainActivity.class);
             PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-
-            Intent pauseIntent = new Intent(this, TimerService.class);
-            pauseIntent.setAction("Pause");
-            PendingIntent ppauseIntent = PendingIntent.getService(this, 0, pauseIntent, 0);
-
+            //STOP INTENT
             Intent stopIntent = new Intent(this, TimerService.class);
             stopIntent.setAction("Stop");
-            stopIntent.putExtra("howMuch", howMuch);
-            stopIntent.putExtra("toBeDone", 20);
             PendingIntent pstopIntent = PendingIntent.getService(this, 0, stopIntent, 0);
 
-            notificationBuilder.setContentIntent(pendingIntent)
-                    .addAction(android.R.drawable.ic_media_pause, "Pause", ppauseIntent)
-                    .addAction(R.drawable.cancel, "Stop", pstopIntent).build();
-            notification = notificationBuilder.build();
-            startForeground(notifyID, notification);
+            if (intent.getAction().equals("Start") || intent.getAction().equals("StartAfterPause")) {
+                if (intent.getAction().equals("Start")) {
+                    howMuch = (long) intent.getExtras().get("howMuch");
+                    toBeDone = (long) intent.getExtras().get("toBeDone");
+                    progress = MainActivity.customTimerClass.getProgressView();
+                }
 
-            setTimer();
-            timer.start();
-        } else if(intent.getAction().equals("Pause")) {
-            System.out.println("Pause");
-        } else if(intent.getAction().equals("Stop")) {
-            timer.cancel();
-            System.out.println(intent.getExtras().get("toBeDone"));
-            stopForeground(true);
-            stopSelf();
+                Intent pauseIntent = new Intent(this, TimerService.class);
+                pauseIntent.setAction("Pause");
+                PendingIntent ppauseIntent = PendingIntent.getService(this, 0, pauseIntent, 0);
+
+                notificationBuilder.setContentIntent(pendingIntent)
+                        .addAction(android.R.drawable.ic_media_pause, "Pause", ppauseIntent)
+                        .addAction(R.drawable.cancel, "Stop", pstopIntent).build();
+                notification = notificationBuilder.build();
+                startForeground(notifyID, notification);
+
+                setTimer();
+                timer.start();
+            } else if (intent.getAction().equals("Pause")) {
+                System.out.println(toBeDone);
+                timer.cancel();
+
+                Intent pauseIntent = new Intent(this, TimerService.class);
+                pauseIntent.setAction("StartAfterPause");
+                PendingIntent ppauseIntent = PendingIntent.getService(this, 0, pauseIntent, 0);
+
+                notification = notificationBuilder.setContentIntent(pendingIntent)
+                        .addAction(android.R.drawable.ic_media_play, "Pause", ppauseIntent)
+                        .addAction(R.drawable.cancel, "Stop", pstopIntent)
+                        .setContentText(longToTime(howMuch - toBeDone)).build();
+
+                notificationManager.notify(notifyID, notification);
+            } else if (intent.getAction().equals("Stop")) {
+                timer.cancel();
+                stopForeground(true);
+                stopSelf();
+            }
         }
         return START_STICKY;
     }
@@ -105,19 +128,38 @@ public class TimerService extends Service{
             public void onTick(long millisUntilFinished) {
                 toBeDone = millisUntilFinished;
                 System.out.println(toBeDone);
-                notificationBuilder.setContentText(longToTime(howMuch - toBeDone));
+                long amount = howMuch - toBeDone;
+                notificationBuilder.setContentText(longToTime(amount));
                 notificationManager.notify(101,notificationBuilder.build());
+                MainActivity.setTimeToTextView(context, progress, amount);
             }
 
             @Override
             public void onFinish() {
-                notificationBuilder.setContentText(longToTime(howMuch));
-                notificationManager.notify(101,notificationBuilder.build());
+                stopForeground(true);
+                stopSelf();
+                endNotify(context);
             }
         };
     }
 
-    public String longToTime(long amount) {
+   private void endNotify(Context context) {
+        Intent intent = new Intent(context, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+
+        Notification notification = new NotificationCompat.Builder(context)
+                .setContentIntent(pendingIntent)
+                .setContentTitle("Your Action")
+                .setContentText("You are done with your task")
+                .setSmallIcon(R.drawable.ic_launcher_round)
+                .setOngoing(false)
+                .setAutoCancel(true).build();
+
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(1, notification);
+    }
+
+    String longToTime(long amount) {
         int hours = (int)amount/3600000;
         int minutes = (int)(amount-(hours*3600000))/60000;
         int minuteTens = minutes/10;
@@ -128,8 +170,8 @@ public class TimerService extends Service{
         return getString(R.string.amountTimeWithSeconds, hours, minuteTens, minuteOnes, secondTens, secondOnes);
     }
 
-    public class MyBinder extends Binder {
-        public TimerService getServiceSystem() {
+    public class LocalBinder extends Binder {
+        TimerService getService() {
             return TimerService.this;
         }
     }
