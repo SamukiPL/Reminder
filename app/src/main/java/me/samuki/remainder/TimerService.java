@@ -30,9 +30,9 @@ public class TimerService extends Service{
     CountDownTimer timer;
     long howMuch;
     long toBeDone;
+    int position;
     Context context;
     TextView progress;
-    CustomTimerClass customTimerClass;
 
     TimerService(){}
 
@@ -73,6 +73,7 @@ public class TimerService extends Service{
                 if (intent.getAction().equals("Start")) {
                     howMuch = (long) intent.getExtras().get("howMuch");
                     toBeDone = (long) intent.getExtras().get("toBeDone");
+                    position = (int) intent.getExtras().get("position");
                     progress = MainActivity.customTimerClass.getProgressView();
                 }
 

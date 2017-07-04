@@ -9,8 +9,9 @@ public class ActionTodo {
     private String date;
     private int repeat;
     private String often;
+    private long toBeDone;
 
-    public ActionTodo(long id, int active, String name, String type, long amount, String date, int repeat, String often) {
+    public ActionTodo(long id, int active, String name, String type, long amount, String date, int repeat, String often, long toBeDone) {
         this.id = id;
         this.active = active;
         this.name = name;
@@ -19,6 +20,7 @@ public class ActionTodo {
         this.date = date;
         this.repeat = repeat;
         this.often = often;
+        this.toBeDone = toBeDone;
     }
 
     public long getId() {
@@ -83,5 +85,13 @@ public class ActionTodo {
 
     public void setOften(String often) {
         this.often = often;
+    }
+
+    public long getToBeDone() {
+        return toBeDone;
+    }
+
+    public void setToBeDone(long toBeDone) {
+        this.toBeDone = toBeDone;
     }
 }

@@ -41,6 +41,9 @@ public class ManagerDbAdapter {
     public static final String KEY_OFTEN = "how_often";
     public static final String OFTEN_OPTIONS = "TEXT DEFAULT \'default\'";
     public static final int OFTEN_COLUMN = 7;
+    public static final String KEY_TO_BE_DONE = "to_be_done";
+    public static final String TO_BE_DONE_OPTIONS = "INTEGER NOT NULL";
+    public static final int TO_BE_DONE_COLUMN = 8;
 
 
     public static final String CREATE_ACTION_TABLE =
@@ -51,7 +54,8 @@ public class ManagerDbAdapter {
                                             KEY_AMOUNT +" " + AMOUNT_OPTIONS + ", " +
                                             KEY_DATE + " " + DATE_OPTIONS + ", " +
                                             KEY_REPEAT + " " + REPEAT_OPTIONS + ", " +
-                                            KEY_OFTEN + " " + OFTEN_OPTIONS  + " );";
+                                            KEY_OFTEN + " " + OFTEN_OPTIONS  + ", " +
+                                            KEY_TO_BE_DONE + " " + TO_BE_DONE_OPTIONS + " );";
     public static final String DROP_ACTION_TABLE =
             "DROP TABLE IF EXISTS " + DB_ACTION_TABLE;
     public static final String INSERT_INTO_ACTION_TABLE =
@@ -65,7 +69,8 @@ public class ManagerDbAdapter {
                     KEY_AMOUNT +" " + AMOUNT_OPTIONS + ", " +
                     KEY_DATE + " " + DATE_OPTIONS + ", " +
                     KEY_REPEAT + " " + REPEAT_OPTIONS + ", " +
-                    KEY_OFTEN + " " + OFTEN_OPTIONS  + " );";
+                    KEY_OFTEN + " " + OFTEN_OPTIONS  + ", " +
+                    KEY_TO_BE_DONE + " " + TO_BE_DONE_OPTIONS + " );";
     public static final String DROP_TMP_TABLE =
             "DROP TABLE IF EXISTS tmp";
     public static final String INSERT_INTO_TMP_TABLE =
@@ -130,6 +135,7 @@ public class ManagerDbAdapter {
         newValue.put(KEY_TYPE, type);
         newValue.put(KEY_AMOUNT, amount);
         newValue.put(KEY_DATE, date);
+        newValue.put(KEY_TO_BE_DONE, amount);
         return db.insert(DB_ACTION_TABLE, null, newValue);
     }
 
@@ -141,6 +147,7 @@ public class ManagerDbAdapter {
         newValue.put(KEY_DATE, date);
         newValue.put(KEY_REPEAT, repeat);
         newValue.put(KEY_OFTEN, often);
+        newValue.put(KEY_TO_BE_DONE, amount);
         return db.insert(DB_ACTION_TABLE, null, newValue);
     }
 
@@ -153,13 +160,14 @@ public class ManagerDbAdapter {
         String date = action.getDate();
         int repeat = action.getRepeat();
         String often = action.getOften();
-        if (!date.equals("0"))
-            return updateAction(id, active, name, type, amount, date);
+        long toBeDone = action.getToBeDone();
+        if (repeat == 0)
+            return updateAction(id, active, name, type, amount, date, toBeDone);
         else
-            return updateAction(id, active, name, type, amount, repeat, often);
+            return updateAction(id, active, name, type, amount, date, repeat, often, toBeDone);
     }
 
-    public boolean updateAction(long id, int active, String name, String type, long amount, String date) {
+    public boolean updateAction(long id, int active, String name, String type, long amount, String date, long toBeDone) {
         String where = KEY_ID + " = " + id;
         ContentValues newValues = new ContentValues();
         newValues.put(KEY_ACTIVE, active);
@@ -167,10 +175,11 @@ public class ManagerDbAdapter {
         newValues.put(KEY_TYPE, type);
         newValues.put(KEY_AMOUNT, amount);
         newValues.put(KEY_DATE, date);
+        newValues.put(KEY_TO_BE_DONE, toBeDone);
         return db.update(DB_ACTION_TABLE, newValues, where, null) > 0;
     }
 
-    public boolean updateAction(long id, int active, String name, String type, long amount, int repeat, String often) {
+    public boolean updateAction(long id, int active, String name, String type, long amount, String date, int repeat, String often, long toBeDone) {
         String where = KEY_ID +" = " + id;
         ContentValues newValues = new ContentValues();
         newValues.put(KEY_ACTIVE, active);
@@ -179,6 +188,7 @@ public class ManagerDbAdapter {
         newValues.put(KEY_AMOUNT, amount);
         newValues.put(KEY_REPEAT, repeat);
         newValues.put(KEY_OFTEN, often);
+        newValues.put(KEY_TO_BE_DONE, toBeDone);
         return db.update(DB_ACTION_TABLE, newValues, where, null) > 0;
     }
 
@@ -195,7 +205,7 @@ public class ManagerDbAdapter {
 
     public ActionTodo getAction(long id) {
         String[] columns = {KEY_ID, KEY_ACTIVE, KEY_ACTION_NAME, KEY_TYPE,
-                            KEY_AMOUNT, KEY_DATE, KEY_REPEAT, KEY_OFTEN};
+                            KEY_AMOUNT, KEY_DATE, KEY_REPEAT, KEY_OFTEN, KEY_TO_BE_DONE};
         String where = KEY_ID + " = " + id;
         Cursor cursor = db.query(DB_ACTION_TABLE, columns, where, null, null, null, null);
         ActionTodo action = null;
@@ -207,7 +217,8 @@ public class ManagerDbAdapter {
             String date = cursor.getString(DATE_COLUMN);
             int repeat = cursor.getInt(REPEAT_COLUMN);
             String often = cursor.getString(OFTEN_COLUMN);
-            action = new ActionTodo(id, active, name, type, amount, date, repeat, often);
+            long toBeDone = cursor.getLong(TO_BE_DONE_COLUMN);
+            action = new ActionTodo(id, active, name, type, amount, date, repeat, often, toBeDone);
         }
         return action;
     }
@@ -221,7 +232,7 @@ public class ManagerDbAdapter {
         return count;
     }
 
-    public void deletEverything() {
+    public void deleteEverything() {
         db.execSQL(DROP_ACTION_TABLE);
         db.execSQL(CREATE_ACTION_TABLE);
     }

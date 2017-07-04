@@ -362,6 +362,7 @@ public class ActionActivity extends Activity {
             }
             database.close();
             Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra("AfterAddingAction", "Added");
             startActivity(intent);
         }
         else

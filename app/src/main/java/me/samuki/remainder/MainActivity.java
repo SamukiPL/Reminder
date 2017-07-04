@@ -1,20 +1,13 @@
 package me.samuki.remainder;
 
 import android.app.Activity;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -34,6 +27,7 @@ public class MainActivity extends Activity {
     Calendar cal;
     static CustomTimerClass customTimerClass;
     long toBeDone[];
+    ManagerDbAdapter database;
 
     TimerService timerService;
 
@@ -44,16 +38,17 @@ public class MainActivity extends Activity {
         dateFormat = new SimpleDateFormat("d-M-yyyy");
         cal = Calendar.getInstance();
         customTimerClass = new CustomTimerClass(this);
+        actionsLayout = (LinearLayout)findViewById(R.id.actionsHere);
+        database = new ManagerDbAdapter(this);
         //JUST WAIT A SECOND TO CONNECT!!!
         bindService(new Intent(this, TimerService.class), serviceConnection, Context.BIND_AUTO_CREATE);
+    }
 
-        actionsLayout = (LinearLayout)findViewById(R.id.actionsHere);
-        ManagerDbAdapter database = new ManagerDbAdapter(this);
-        database.open();
-        int actionsAmount = database.actionCount();
-        toBeDone = new long[actionsAmount];
-        setActionsLayout(actionsAmount, database);
-        database.close();
+    @Override
+    protected void onRestart() {
+        actionsLayout.removeAllViews();
+        setEveryAction();
+        super.onRestart();
     }
 
     @Override
@@ -63,16 +58,24 @@ public class MainActivity extends Activity {
         super.onDestroy();
     }
 
+    private void setEveryAction() {
+        database.open();
+        int actionsAmount = database.actionCount();
+        toBeDone = new long[actionsAmount];
+        setActionsLayout(actionsAmount, database);
+        database.close();
+    }
+
     private void setActionsLayout(int actionsAmount, ManagerDbAdapter database) {
         for (int i = 1; i <= actionsAmount; i++) {
             ActionTodo action = database.getAction(i);
             if(action.getActive() == 1) {
                 RelativeLayout actionRow = (RelativeLayout) getLayoutInflater().inflate(R.layout.action_row, null);
 
-                TextView name = (TextView) actionRow.getChildAt(0);
+                TextView name = (TextView) actionRow.findViewById(R.id.actionRow_name);
                 name.setText(action.getName());
 
-                TextView time = (TextView) actionRow.getChildAt(1);
+                TextView time = (TextView) actionRow.findViewById(R.id.actionRow_time);
                 if (action.getOften().equals("default")) {
                     Date startDate = cal.getTime();
                     Date endDate = new Date();
@@ -107,44 +110,47 @@ public class MainActivity extends Activity {
                     } catch (ParseException e) {
                         e.printStackTrace();
                     }
-                    System.out.println(startDate + "     TAK   " + endDate);
                     long timeLeft = (Math.abs(startDate.getTime() - endDate.getTime()));
                     int daysLeft = (int) (repeat - (TimeUnit.DAYS.convert(timeLeft, TimeUnit.MILLISECONDS) % (repeat + 1)));
                     time.setText(getResources().getQuantityString(R.plurals.daysLeft, daysLeft, daysLeft));
                 }
 
-                TextView progress = (TextView) actionRow.getChildAt(3);
+                TextView progress = (TextView) actionRow.findViewById(R.id.actionRow_progress);
                 progress.setText("0");
 
-                TextView slash = (TextView) actionRow.getChildAt(4);
+                TextView slash = (TextView) actionRow.findViewById(R.id.actionRow_slash);
                 slash.setText("/");
 
                 String actionType = action.getType();
-                TextView amount = (TextView) actionRow.getChildAt(5);
+                TextView amount = (TextView) actionRow.findViewById(R.id.actionRow_amount);
                 long howMuch = action.getAmount();
-                LinearLayout actionRowButtons = (LinearLayout) actionRow.getChildAt(7);
+                LinearLayout actionRowButtons = (LinearLayout) actionRow.findViewById(R.id.actionRow_buttons);
                 LinearLayout buttons;
                 Button startButton;
 
                 if (actionType.equals(getString(R.string.time))) {
                     setTimeToTextView(amount, howMuch);
-                    progress.setText(getString(R.string.amountTime, 0, 0, 0));
+                    if(i == timerService.position) {
+                        timerService.progress = progress;
+                        setTimeToTextView(progress, timerService.howMuch-timerService.toBeDone);
+                    } else
+                        progress.setText(getString(R.string.amountTime, 0, 0, 0));
                     buttons = (LinearLayout) getLayoutInflater().inflate(R.layout.time_buttons, null);
-                    startButton = (Button) buttons.getChildAt(0);
                     toBeDone[i-1] = howMuch;
                 } else {
                     amount.setText(getString(R.string.amountText, howMuch));
-                    TextView type = (TextView) actionRow.getChildAt(6);
+                    TextView type = (TextView) actionRow.findViewById(R.id.actionRow_type);
                     type.setText(action.getType());
                     buttons = (LinearLayout) getLayoutInflater().inflate(R.layout.other_buttons, null);
                     toBeDone[i-1] = howMuch;
                 }
                 //FOR TIMER
-                TextView invisibleView = (TextView) actionRow.getChildAt(8);
+                TextView invisibleView = (TextView) actionRow.findViewById(R.id.actionRow_howMuch);
                 invisibleView.setText(getString(R.string.amountText, howMuch));
                 TextView toBeDoneView = (TextView) actionRow.findViewById(R.id.actionRow_toBeDone);
                 toBeDoneView.setText(getString(R.string.amountText, toBeDone[i-1]));
-                TextView positionView = (TextView) actionRow.getChildAt(10);
+                TextView positionView = (TextView) actionRow.findViewById(R.id.actionRow_positionNumber);
+                positionView.setText(getString(R.string.amountText, i));
                 actionRowButtons.addView(buttons);
 
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -179,11 +185,14 @@ public class MainActivity extends Activity {
         Button button = (Button)view;
         String state = button.getText().toString();
         RelativeLayout actionRow = (RelativeLayout)button.getParent().getParent().getParent();
-        TextView howMuchView = (TextView)actionRow.getChildAt(8);
+        TextView howMuchView = (TextView)actionRow.findViewById(R.id.actionRow_howMuch);
         TextView toBeDoneView = (TextView)actionRow.findViewById(R.id.actionRow_toBeDone);
+        TextView positionView = (TextView)actionRow.findViewById(R.id.actionRow_positionNumber);
         TextView progressView = (TextView)actionRow.findViewById(R.id.actionRow_progress);
         if(state.equals(getString(R.string.start))) {
-            customTimerClass.start(Long.parseLong(howMuchView.getText().toString()), Long.parseLong(toBeDoneView.getText().toString()));
+            customTimerClass.start( Long.parseLong(howMuchView.getText().toString()),
+                                    Long.parseLong(toBeDoneView.getText().toString()),
+                                    Integer.parseInt(positionView.getText().toString()));
             customTimerClass.setProgressView(progressView);
             button.setText(getString(R.string.stop));
         }
@@ -199,6 +208,7 @@ public class MainActivity extends Activity {
             TimerService.LocalBinder binder = (TimerService.LocalBinder) service;
             timerService = binder.getService();
             System.out.println("TAK JEST!!!");
+            setEveryAction();
         }
 
         @Override
@@ -211,16 +221,10 @@ class CustomTimerClass {
 
     private Context context;
     private TextView progress;
-    private Button button;
-    private long howMuch;
     long toBeDone;
-    private TimerService timerService;
-    private Intent timerIntent;
 
     CustomTimerClass(Context context) {
         this.context = context;
-
-        timerService = new TimerService();
     }
 
     void setProgressView(TextView progress) {
@@ -230,13 +234,11 @@ class CustomTimerClass {
         return progress;
     }
 
-    void start(long howMuch, long toBeDone) {
-        this.howMuch = howMuch;
-        this.toBeDone = toBeDone;
-
+    void start(long howMuch, long toBeDone, int position) {
         Intent startIntent = new Intent(context, TimerService.class);
         startIntent.putExtra("howMuch", howMuch);
         startIntent.putExtra("toBeDone", toBeDone);
+        startIntent.putExtra("position", position);
         startIntent.setAction("Start");
         context.startService(startIntent);
     }
@@ -245,10 +247,5 @@ class CustomTimerClass {
         Intent stopIntent = new Intent(context, TimerService.class);
         stopIntent.setAction("Stop");
         context.startService(stopIntent);
-    }
-
-    long getToBeDone() {
-        //return timerService.toBeDone;
-        return  0;
     }
 }
