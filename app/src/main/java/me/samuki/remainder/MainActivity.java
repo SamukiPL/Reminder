@@ -26,8 +26,7 @@ public class MainActivity extends Activity {
     SimpleDateFormat dateFormat;
     Calendar cal;
     static CustomTimerClass customTimerClass;
-    long toBeDone[];
-    ManagerDbAdapter database;
+    static ManagerDbAdapter database;
 
     TimerService timerService;
 
@@ -61,7 +60,6 @@ public class MainActivity extends Activity {
     private void setEveryAction() {
         database.open();
         int actionsAmount = database.actionCount();
-        toBeDone = new long[actionsAmount];
         setActionsLayout(actionsAmount, database);
         database.close();
     }
@@ -130,30 +128,29 @@ public class MainActivity extends Activity {
 
                 if (actionType.equals(getString(R.string.time))) {
                     setTimeToTextView(amount, howMuch);
-                    if(i == timerService.position) {
-                        timerService.progress = progress;
-                        setTimeToTextView(progress, timerService.howMuch-timerService.toBeDone);
-                    } else
-                        progress.setText(getString(R.string.amountTime, 0, 0, 0));
+                    if(i == timerService.getPosition()) {
+                        timerService.setProgress(progress);
+                        setTimeToTextView(progress, timerService.getHowMuch()-timerService.getToBeDone());
+                    } else setTimeToTextView(progress, action.getAmount() - action.getToBeDone());
                     buttons = (LinearLayout) getLayoutInflater().inflate(R.layout.time_buttons, null);
-                    toBeDone[i-1] = howMuch;
                 } else {
                     amount.setText(getString(R.string.amountText, howMuch));
                     TextView type = (TextView) actionRow.findViewById(R.id.actionRow_type);
                     type.setText(action.getType());
                     buttons = (LinearLayout) getLayoutInflater().inflate(R.layout.other_buttons, null);
-                    toBeDone[i-1] = howMuch;
                 }
                 //FOR TIMER
                 TextView invisibleView = (TextView) actionRow.findViewById(R.id.actionRow_howMuch);
                 invisibleView.setText(getString(R.string.amountText, howMuch));
                 TextView toBeDoneView = (TextView) actionRow.findViewById(R.id.actionRow_toBeDone);
-                toBeDoneView.setText(getString(R.string.amountText, toBeDone[i-1]));
+                toBeDoneView.setText(getString(R.string.amountText, action.getToBeDone()));
                 TextView positionView = (TextView) actionRow.findViewById(R.id.actionRow_positionNumber);
                 positionView.setText(getString(R.string.amountText, i));
                 actionRowButtons.addView(buttons);
 
-                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT);
                 params.setMargins(0, 0, 0, 25);
                 actionRow.setLayoutParams(params);
                 actionsLayout.addView(actionRow);
@@ -166,14 +163,26 @@ public class MainActivity extends Activity {
         int minutes = (int)(amount-(hours*3600000))/60000;
         int minuteTens = minutes/10;
         int minuteOnes = minutes - (minuteTens*10);
-        textView.setText(getString(R.string.amountTime, hours, minuteTens, minuteOnes));
+        int second = (int)(amount-(hours*3600000)-(minutes*60000))/1000;
+        if(second != 0) {
+            int secondTens = second / 10;
+            int secondOnes = second - (secondTens * 10);
+            textView.setText(getString(R.string.amountTimeWithSeconds, hours,
+                            minuteTens, minuteOnes, secondTens, secondOnes));
+        } else {
+            textView.setText(getString(R.string.amountTime, hours, minuteTens, minuteOnes));
+        }
     }
     public static void setTimeToTextView(Context context, TextView textView, long amount) {
         int hours = (int)amount/3600000;
         int minutes = (int)(amount-(hours*3600000))/60000;
         int minuteTens = minutes/10;
         int minuteOnes = minutes - (minuteTens*10);
-        textView.setText(context.getString(R.string.amountTime, hours, minuteTens, minuteOnes));
+        int second = (int)(amount-(hours*3600000)-(minutes*60000))/1000;
+        int secondTens = second/10;
+        int secondOnes = second - (secondTens*10);
+        textView.setText(context.getString(R.string.amountTimeWithSeconds, hours,
+                                minuteTens, minuteOnes, secondTens, secondOnes));
     }
 
     public void newAction(View view) {
@@ -185,13 +194,15 @@ public class MainActivity extends Activity {
         Button button = (Button)view;
         String state = button.getText().toString();
         RelativeLayout actionRow = (RelativeLayout)button.getParent().getParent().getParent();
-        TextView howMuchView = (TextView)actionRow.findViewById(R.id.actionRow_howMuch);
-        TextView toBeDoneView = (TextView)actionRow.findViewById(R.id.actionRow_toBeDone);
         TextView positionView = (TextView)actionRow.findViewById(R.id.actionRow_positionNumber);
         TextView progressView = (TextView)actionRow.findViewById(R.id.actionRow_progress);
+        database.open();
+        ActionTodo action = database.getAction(Integer.parseInt(positionView.getText().toString()));
+        String name = action.getName();
+        long howMuch = action.getAmount();
+        long toBeDone = action.getToBeDone();
         if(state.equals(getString(R.string.start))) {
-            customTimerClass.start( Long.parseLong(howMuchView.getText().toString()),
-                                    Long.parseLong(toBeDoneView.getText().toString()),
+            customTimerClass.start( name, howMuch, toBeDone,
                                     Integer.parseInt(positionView.getText().toString()));
             customTimerClass.setProgressView(progressView);
             button.setText(getString(R.string.stop));
@@ -200,6 +211,15 @@ public class MainActivity extends Activity {
             customTimerClass.cancel();
             button.setText(getString(R.string.start));
         }
+    }
+
+    public static void updateAction(int id, long toBeDone) {
+        System.out.println("TU TEZ!!!");
+        database.open();
+        ActionTodo action = database.getAction(id);
+        action.setToBeDone(toBeDone);
+        database.updateAction(action);
+        database.close();
     }
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
@@ -234,8 +254,9 @@ class CustomTimerClass {
         return progress;
     }
 
-    void start(long howMuch, long toBeDone, int position) {
+    void start(String name, long howMuch, long toBeDone, int position) {
         Intent startIntent = new Intent(context, TimerService.class);
+        startIntent.putExtra("name", name);
         startIntent.putExtra("howMuch", howMuch);
         startIntent.putExtra("toBeDone", toBeDone);
         startIntent.putExtra("position", position);
