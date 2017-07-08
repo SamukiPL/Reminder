@@ -39,4 +39,5 @@
         <item quantity="other">%1$d days left</item>
     </plurals>
     <string name="date" translatable="false">%1$d-%2$d-%3$d</string>
+    <string name="doItAgain">Do it again</string>
 </resources>

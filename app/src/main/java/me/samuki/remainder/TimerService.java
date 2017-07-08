@@ -7,18 +7,14 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
-import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.os.Vibrator;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import org.w3c.dom.Text;
-
-import java.sql.Time;
 
 
 public class TimerService extends Service{
@@ -35,6 +31,7 @@ public class TimerService extends Service{
     private int position;
     private Context context;
     private TextView progress;
+    private Button startButton;
 
     TimerService(){}
 
@@ -47,8 +44,9 @@ public class TimerService extends Service{
     int getPosition() {
         return position;
     }
-    void setProgress(TextView progress) {
+    void setProgressAndButton(TextView progress, Button startButton) {
         this.progress = progress;
+        this.startButton = startButton;
     }
 
     @Nullable
@@ -88,7 +86,6 @@ public class TimerService extends Service{
                         howMuch = (long) intent.getExtras().get("howMuch");
                         toBeDone = (long) intent.getExtras().get("toBeDone");
                         position = (int) intent.getExtras().get("position");
-                        progress = MainActivity.customTimerClass.getProgressView();
                     }
 
                     Intent pauseIntent = new Intent(this, TimerService.class);
@@ -123,7 +120,7 @@ public class TimerService extends Service{
                     notificationManager.notify(notifyID, notification);
                 } else if (intent.getAction().equals("Stop")) {
                     System.out.println("DZIALA!!!");
-                    MainActivity.updateAction(position, toBeDone);
+                    MainActivity.updateActionToBeDone(position, toBeDone);
                     timer.cancel();
                     stopForeground(true);
                     stopSelf();
@@ -150,8 +147,8 @@ public class TimerService extends Service{
             public void onTick(long millisUntilFinished) {
                 toBeDone = Math.round(millisUntilFinished/1000)*1000;
                 System.out.println(toBeDone);
-                long amount = howMuch - toBeDone;
-                notificationBuilder.setContentText(longToTime(amount));
+                long amount = (howMuch - toBeDone);
+                notificationBuilder.setContentText(longToTime(howMuch - amount));
                 notificationManager.notify(101,notificationBuilder.build());
                 MainActivity.setTimeToTextView(context, progress, amount);
             }
@@ -159,7 +156,11 @@ public class TimerService extends Service{
             @Override
             public void onFinish() {
                 MainActivity.setTimeToTextView(context, progress, howMuch);
-                MainActivity.updateAction(position, toBeDone);
+                MainActivity.updateActionToBeDone(position, toBeDone);
+                startButton.setVisibility(Button.GONE);
+                LinearLayout buttonsLayout = (LinearLayout)startButton.getParent();
+                Button secondButton = (Button) buttonsLayout.findViewById(R.id.actionRow_done);
+                secondButton.setText(getString(R.string.doItAgain));
                 Vibrator vibrator =(Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
                 vibrator.vibrate(500);
                 stopForeground(true);

@@ -34,4 +34,5 @@
         <item quantity="many">Zostało %1$d dni</item>
     </plurals>
     <string name="time">Czas</string>
+    <string name="doItAgain">Powtórz</string>
 </resources>
