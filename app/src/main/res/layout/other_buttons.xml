@@ -2,28 +2,38 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal" android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <Button
-        android:id="@+id/actionRow_one"
+    <LinearLayout
+        android:id="@+id/actionRow_buttonsContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:minWidth="1dp"
-        android:text="@string/plusOne"/>
-    <Button
-        android:id="@+id/actionRow_ten"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:minWidth="1dp"
-        android:text="@string/plusTen"/>
-    <Button
-        android:id="@+id/actionRow_five"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:minWidth="1dp"
-        android:text="@string/plusHundred"/>
+        android:orientation="horizontal">
+        <Button
+            android:id="@+id/actionRow_one"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="1dp"
+            android:text="@string/plusOne"
+            android:onClick="addSomeValue"/>
+        <Button
+            android:id="@+id/actionRow_ten"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="1dp"
+            android:text="@string/plusTen"
+            android:onClick="addSomeValue"/>
+        <Button
+            android:id="@+id/actionRow_hundred"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="1dp"
+            android:text="@string/plusHundred"
+            android:onClick="addSomeValue"/>
+    </LinearLayout>
     <Button
         android:id="@+id/actionRow_done"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:minWidth="1dp"
-        android:text="@string/allDone"/>
+        android:text="@string/allDone"
+        android:onClick="doneButton"/>
 </LinearLayout>

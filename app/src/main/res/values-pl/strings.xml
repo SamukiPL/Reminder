@@ -35,4 +35,6 @@
     </plurals>
     <string name="time">Czas</string>
     <string name="doItAgain">Powtórz</string>
+    <string name="youAreDone">Twoje zadanie właśnie się skończyło</string>
+    <string name="spendMoreTime">Musisz wytrzymać jeszcze %1$s!</string>
 </resources>

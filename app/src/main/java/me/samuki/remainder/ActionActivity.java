@@ -259,12 +259,17 @@ public class ActionActivity extends Activity {
             }
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
+                int position = periodSpinner.getSelectedItemPosition();
+
                 if(count == 1)
                     zeroFirst(periodEdit, s.charAt(0));
+
                 if(s.toString().equals("1"))
                     periodSpinner.setAdapter(oneAdapter);
                 else
                     periodSpinner.setAdapter(pluralAdapter);
+
+                periodSpinner.setSelection(position);
                 maxLengthCheck(periodEdit, 2);
                 dateOrPeriod.check(R.id.repeat);
             }
@@ -344,7 +349,6 @@ public class ActionActivity extends Activity {
         //TYPE AMOUNT CHANGER
 
         String name = actionName.getText().toString();
-        System.out.println(typeSpinner.getSelectedItem().toString());
         String type = typeSpinner.getSelectedItem().toString();
         long amount = amountChanger();
         String date = dateText.getText().toString();

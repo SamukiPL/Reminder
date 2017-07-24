@@ -135,7 +135,10 @@ public class ManagerDbAdapter {
         newValue.put(KEY_TYPE, type);
         newValue.put(KEY_AMOUNT, amount);
         newValue.put(KEY_DATE, date);
-        newValue.put(KEY_TO_BE_DONE, amount);
+        if(type.equals(context.getString(R.string.time)))
+            newValue.put(KEY_TO_BE_DONE, amount);
+        else
+            newValue.put(KEY_TO_BE_DONE, 0);
         return db.insert(DB_ACTION_TABLE, null, newValue);
     }
 

@@ -25,7 +25,8 @@
         android:minHeight="1dp"
         android:minWidth="1dp"
         android:background="@drawable/settingsbutton"
-        android:layout_alignParentEnd="true"/>
+        android:layout_alignParentEnd="true"
+        android:onClick="editAction"/>
     <TextView
         android:id="@+id/actionRow_progress"
         android:layout_width="wrap_content"

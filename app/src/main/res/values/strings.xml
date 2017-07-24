@@ -40,4 +40,6 @@
     </plurals>
     <string name="date" translatable="false">%1$d-%2$d-%3$d</string>
     <string name="doItAgain">Do it again</string>
+    <string name="youAreDone">You are done with your task</string>
+    <string name="spendMoreTime">You have to spend %1$s more!</string>
 </resources>
